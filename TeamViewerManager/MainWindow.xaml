@@ -5,8 +5,94 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TeamViewerManager"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
-    <Grid>
+        Title="TeamViewer账户管理工具" Height="400" Width="634" Icon="CN4.ico"
         
-    </Grid>
+        >
+    <DockPanel>
+        <ListView x:Name="listView" HorizontalAlignment="Left"  VerticalAlignment="Top"  DockPanel.Dock="Left" MouseDoubleClick="listView_MouseDoubleClick"  GridViewColumnHeader.Click="ButtonSort_Click" >
+            <!--分组合并style-->
+            <ListView.GroupStyle>
+                <GroupStyle>
+                    <GroupStyle.ContainerStyle>
+                        <Style TargetType="{x:Type GroupItem}">
+                            <Setter Property="Margin" Value="0,0,0,5"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type GroupItem}">
+                                        <Expander IsExpanded="False" BorderBrush="#FF1975A0" BorderThickness="2">
+                                            <Expander.Header>
+                                                <DockPanel>
+                                                    <TextBlock FontWeight="Bold" Text="{Binding Path=Name,Mode=OneWay}" 
+                                                               Margin="5,0,0,0" Width="auto"/>
+                                                    <TextBlock FontWeight="Bold" Text="("/>
+                                                    <TextBlock FontWeight="Bold" Text="{Binding Path=ItemCount}"/>
+                                                    <TextBlock FontWeight="Bold" Text="项)"/>
+                                                </DockPanel>
+                                            </Expander.Header>
+                                            <Expander.Content>
+                                                <ItemsPresenter/>
+                                            </Expander.Content>
+                                        </Expander>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </GroupStyle.ContainerStyle>
+                </GroupStyle>
+            </ListView.GroupStyle>
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="ID" Width="90">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Path=Id,Mode=TwoWay}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="名称" Width="90">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Path=Name,Mode=TwoWay}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="密码" Width="90">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Path=Password,Mode=TwoWay}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="备注" Width="90">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Path=Memo,Mode=TwoWay}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <GroupBox Header="详细信息">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+                    <Button Content="新增" Margin="10,0,5,0" Click="Button_Click"/>
+                    <Button Content="保存" Margin="10,0,5,0" Click="Button_Click_1"/>
+                    <Button Content="删除" Margin="10,0,5,0" Click="Button_Click_2"/>
+                    <Button Content="远程" Margin="10,0,5,0" Click="Button_Click_3" />
+                    <Button Content="文件" Margin="10,0,5,0" Click="Button_Click_3" />
+                </StackPanel>
+                <TextBlock Text="ID：" DockPanel.Dock="Top"/>
+                <TextBox Text="{Binding ElementName=listView,Path=SelectedItem.Id,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"  DockPanel.Dock="Top"/>
+                <TextBlock Text="密码：" DockPanel.Dock="Top"/>
+                <TextBox Text="{Binding ElementName=listView,Path=SelectedItem.Password,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Top"/>
+                <TextBlock Text="用户名称：" DockPanel.Dock="Top"/>
+                <TextBox Text="{Binding ElementName=listView,Path=SelectedItem.Name,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Top"/>
+                <TextBlock Text="分组名称：" DockPanel.Dock="Top"/>
+                <TextBox Text="{Binding ElementName=listView,Path=SelectedItem.GroupName,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Top"/>
+                <TextBlock Text="备注：" DockPanel.Dock="Top"/>
+                <TextBox Text="{Binding ElementName=listView,Path=SelectedItem.Memo,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" TextWrapping="WrapWithOverflow" AcceptsReturn="True" VerticalScrollBarVisibility="Visible"/>
+            </DockPanel>
+        </GroupBox>
+    </DockPanel>
 </Window>

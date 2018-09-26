@@ -7,12 +7,12 @@ using System.Windows;
 // 有关程序集的一般信息由以下
 // 控制。更改这些特性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("TeamViewerManager")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("TeamViewer账号管理工具")]
+[assembly: AssemblyDescription("TeamViewer账号管理工具")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("TeamViewerManager")]
-[assembly: AssemblyCopyright("Copyright ©  2017")]
+[assembly: AssemblyCopyright("twoxzi")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
