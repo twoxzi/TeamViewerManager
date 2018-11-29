@@ -9,8 +9,8 @@ namespace Twoxzi.TeamViewerManager.Entity
 {
     public enum TeamViewerAction
     {
-        Filetransfer=1,
-        RemoteSupport=0
+        Filetransfer = 1,
+        RemoteSupport = 0
     }
 
     public class TeamViewer : BindableBase
@@ -24,6 +24,7 @@ namespace Twoxzi.TeamViewerManager.Entity
         private TeamViewerAction action;
         private static String folder;
         private String groupName;
+        private String lastTime;
         #endregion Fields
 
         #region Properties
@@ -91,6 +92,7 @@ namespace Twoxzi.TeamViewerManager.Entity
                 OnPropertyChanged("Name");
             }
         }
+
         /// <summary>
         /// 备注
         /// </summary>
@@ -123,7 +125,7 @@ namespace Twoxzi.TeamViewerManager.Entity
         {
             get
             {
-                if (filePath == null)
+                if(filePath == null)
                 {
                     filePath = Path.Combine(Folder, DateTime.Now.ToString("yyyyMMddHHmmss") + ".tvc");
                 }
@@ -136,15 +138,31 @@ namespace Twoxzi.TeamViewerManager.Entity
                 OnPropertyChanged("FilePath");
             }
         }
+        /// <summary>
+        /// 排序
+        /// </summary>
+        [Description(nameof(LastTime))]
+        public String LastTime
+        {
+            get
+            {
+                return lastTime;
+            }
 
+            set
+            {
+                this.lastTime = value;
+                OnPropertyChanged(nameof(LastTime));
+            }
+        }
         public static string Folder
         {
             get
             {
-                if (folder == null)
+                if(folder == null)
                 {
                     folder = ConfigurationManager.AppSettings["folder"];
-                    if (folder == null)
+                    if(folder == null)
                     {
                         folder = "tvcFiles";
                     }
@@ -152,6 +170,8 @@ namespace Twoxzi.TeamViewerManager.Entity
                 return folder;
             }
         }
+
+
 
         #endregion Properties
 
@@ -165,11 +185,11 @@ namespace Twoxzi.TeamViewerManager.Entity
         public static List<TeamViewer> OpenFiles()
         {
             List<TeamViewer> collection = new List<TeamViewer>();
-            if (!Directory.Exists(Folder))
+            if(!Directory.Exists(Folder))
             {
                 Directory.CreateDirectory(Folder);
             }
-            foreach (String item in Directory.GetFiles(Folder))
+            foreach(String item in Directory.GetFiles(Folder))
             {
                 collection.Add(TeamViewer.OpenFile(item));
             }
@@ -178,26 +198,29 @@ namespace Twoxzi.TeamViewerManager.Entity
 
         public void Open(String filePath)
         {
-
-
             PropertyInfo[] pis = this.GetType().GetProperties();
-            foreach (PropertyInfo property in pis)
+            foreach(PropertyInfo property in pis)
             {
                 String key = (Attribute.GetCustomAttribute(property, typeof(DescriptionAttribute)) as DescriptionAttribute)?.Description;
-                if (key != null && key.Length > 0)
+                if(key != null && key.Length > 0)
                 {
                     String value = OperateIniFile.ReadIniData("TeamViewer Configuration", key, "", filePath);
-                    if (value != null && value.Length > 0)
+                    if(value != null && value.Length > 0)
                     {
                         if(property.PropertyType.IsEnum) //属性类型是否表示枚举
                         {
-                            
+
                             object enumName = Enum.Parse(property.PropertyType, value);
                             property.SetValue(this, enumName, null); //获取枚举值，设置属性值
                         }
                         else
                         {
-                            property.SetValue(this, value, null);
+                            Object obj = value;
+                            if(property.PropertyType.IsValueType && String.IsNullOrEmpty(value))
+                            {
+                                obj = Activator.CreateInstance(property.PropertyType);
+                            }
+                            property.SetValue(this, obj, null);
                         }
                     }
                 }
@@ -209,9 +232,10 @@ namespace Twoxzi.TeamViewerManager.Entity
 
         public Boolean Save(String filePath = null)
         {
-            if (filePath == null)
+            this.LastTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            if(filePath == null)
             {
-                if (this.FilePath == null)
+                if(this.FilePath == null)
                 {
                     throw new Exception("文件路径不合法");
                 }
@@ -220,15 +244,15 @@ namespace Twoxzi.TeamViewerManager.Entity
                     filePath = FilePath;
                 }
             }
-            if (!File.Exists(filePath))
+            if(!File.Exists(filePath))
             {
-                using (File.CreateText(filePath)) { }
+                using(File.CreateText(filePath)) { }
             }
             PropertyInfo[] pis = this.GetType().GetProperties();
-            foreach (PropertyInfo item in pis)
+            foreach(PropertyInfo item in pis)
             {
                 String key = (Attribute.GetCustomAttribute(item, typeof(DescriptionAttribute)) as DescriptionAttribute)?.Description;
-                if (key != null && key.Length > 0)
+                if(key != null && key.Length > 0)
                 {
                     String value = item.GetValue(this, null)?.ToString();
                     OperateIniFile.WriteIniData("TeamViewer Configuration", key, value, filePath);

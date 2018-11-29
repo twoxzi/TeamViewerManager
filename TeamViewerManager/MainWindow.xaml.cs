@@ -34,9 +34,9 @@ namespace TeamViewerManager
         public MainWindow()
         {
             InitializeComponent();
-            this.Dispatcher.BeginInvoke( new Action( loadFiles));
-
-
+           var v= this.Dispatcher.BeginInvoke(new Action(loadFiles));
+            v.Completed += LoadFiles_Completed;
+            
             listView.ItemsSource = Collection;
             // Console.WriteLine("分组");
             // 分组显示
@@ -47,9 +47,15 @@ namespace TeamViewerManager
 
             
 
-            
+
 
             loadListViewColumns();
+        }
+
+        private void LoadFiles_Completed(Object sender, EventArgs e)
+        {
+            // 加载完成后排序
+            RefreshOrder(null, true);
         }
 
         private void loadListViewColumns()
@@ -67,11 +73,11 @@ namespace TeamViewerManager
         private void loadFiles()
         {
             Collection.Clear();
-            foreach(TeamViewer   item in TeamViewer.OpenFiles().OrderBy(x=>x.Name))
+            foreach(TeamViewer item in TeamViewer.OpenFiles().OrderBy(x => x.Name))
             {
                 Collection.Add(item);
             }
-            
+
         }
 
         private void listView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -138,7 +144,7 @@ namespace TeamViewerManager
                     tv.Action = btn.Content?.ToString() == "文件" ? TeamViewerAction.Filetransfer : TeamViewerAction.RemoteSupport;
                 }
 
-                 tv.Save();
+                tv.Save();
                 
                 if(tv.Password != null && tv.Password.Length > 0)
                 {
@@ -146,6 +152,7 @@ namespace TeamViewerManager
                 }
                 Process.Start(tv.FilePath);
                 this.WindowState = WindowState.Minimized;
+                RefreshOrder(null, true);
                 ActiveProcess(ConfigurationManager.AppSettings["tvProcessName"]);
             }
             catch(Exception ex)
@@ -165,7 +172,7 @@ namespace TeamViewerManager
                     if(handle != IntPtr.Zero)
                     {
                         // 激活，显示在最前
-                        SwitchToThisWindow(handle, true);    
+                        SwitchToThisWindow(handle, true);
                     }
                 }
                 else
@@ -173,6 +180,29 @@ namespace TeamViewerManager
                     MessageBox.Show("没有找到" + pName);
                 }
             }
+        }
+
+        //private Func<TeamViewer, String> OrderFunc;
+
+        /// <summary>
+        /// 刷新排序
+        /// </summary>
+        /// <param name="func"></param>
+        /// <param name="isAsc"></param>
+        private void RefreshOrder(Func<TeamViewer, String> func, Boolean isAsc)
+        {
+            IOrderedEnumerable<TeamViewer> order = Collection.OrderByDescending(x => x.LastTime);
+            if(func != null)
+            {
+                order = isAsc ? order.ThenBy(func) : order.ThenByDescending(func);
+            }
+            List<TeamViewer> list = new List<TeamViewer>(order);
+            Collection.Clear();
+            foreach(var item in list)
+            {
+                Collection.Add(item);
+            }
+
         }
 
         //单击表头排序  
@@ -189,21 +219,17 @@ namespace TeamViewerManager
                     ListViewOrderAsc[clickedColumn] = !isAsc;
 
 
-                    Func<TeamViewer, String> func = null;
+                    Func<TeamViewer, String> OrderFunc = null;
                     switch(clickedColumn.Header.ToString())
                     {
-                        case "ID": func = (x) => x.Id; break;
-                        case "名称": func = x => x.Name; break;
-                        case "密码": func = x => x.Password; break;
-                        case "备注": func = x => x.Memo; break;
-                    }
-                    List<TeamViewer> list = new List<TeamViewer>(isAsc ? Collection.OrderBy(func) : Collection.OrderByDescending(func));
-                    Collection.Clear();
-                    foreach(var item in list)
-                    {
-                        Collection.Add(item);
+                        case "ID": OrderFunc = (x) => x.Id; break;
+                        case "名称": OrderFunc = x => x.Name; break;
+                        case "密码": OrderFunc = x => x.Password; break;
+                        case "备注": OrderFunc = x => x.Memo; break;
                     }
 
+
+                    RefreshOrder(OrderFunc, isAsc);
                 }
             }
         }
