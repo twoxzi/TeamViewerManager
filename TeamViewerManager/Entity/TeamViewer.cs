@@ -29,6 +29,7 @@ namespace Twoxzi.TeamViewerManager.Entity
 
         #region Properties
         [Description("action")]
+        [TeamviewerKeyAttribute("action")]
         public TeamViewerAction Action
         {
             get { return action; }
@@ -42,7 +43,8 @@ namespace Twoxzi.TeamViewerManager.Entity
         /// TeamViewer Id
         /// </summary>
         /// 
-        [Description("targetId")]
+        [Description("ID")]
+        [TeamviewerKeyAttribute("targetId")]
         public String Id
         {
             get
@@ -60,7 +62,8 @@ namespace Twoxzi.TeamViewerManager.Entity
         /// 密码
         /// </summary>
         /// 
-        [Description("password")]
+        [TeamviewerKeyAttribute("password")]
+        [Description("密码")]
         public string Password
         {
             get
@@ -78,7 +81,8 @@ namespace Twoxzi.TeamViewerManager.Entity
         /// 名称
         /// </summary>
         /// 
-        [Description("name")]
+        [TeamviewerKeyAttribute("name")]
+        [Description("名称")]
         public string Name
         {
             get
@@ -97,7 +101,8 @@ namespace Twoxzi.TeamViewerManager.Entity
         /// 备注
         /// </summary>
         /// 
-        [Description("memo")]
+        [TeamviewerKeyAttribute("memo")]
+        [Description("备注")]
         public string Memo
         {
             get
@@ -111,7 +116,8 @@ namespace Twoxzi.TeamViewerManager.Entity
                 OnPropertyChanged("Memo");
             }
         }
-        [Description("groupName")]
+        [TeamviewerKeyAttribute("groupName")]
+        [Description("分组名")]
         public String GroupName
         {
             get { return groupName; }
@@ -139,9 +145,10 @@ namespace Twoxzi.TeamViewerManager.Entity
             }
         }
         /// <summary>
-        /// 排序
+        /// 
         /// </summary>
-        [Description(nameof(LastTime))]
+        [TeamviewerKeyAttribute(nameof(LastTime))]
+        [Description("访问时间")]
         public String LastTime
         {
             get
@@ -175,6 +182,24 @@ namespace Twoxzi.TeamViewerManager.Entity
 
         #endregion Properties
 
+        public static Dictionary<String,PropertyInfo> PropertyDescriptionDic { get; set; }
+
+        static TeamViewer()
+        {
+            PropertyDescriptionDic = new Dictionary<string, PropertyInfo>();
+            foreach(PropertyInfo property in typeof(TeamViewer).GetProperties())
+            {
+                String key = (Attribute.GetCustomAttribute(property, typeof(DescriptionAttribute)) as DescriptionAttribute)?.Description;
+                if(!String.IsNullOrEmpty(key))
+                {
+                    if(!PropertyDescriptionDic.ContainsKey(key))
+                    {
+                        PropertyDescriptionDic.Add(key, property);
+                    }
+                }
+            }
+        }
+
         public static TeamViewer OpenFile(String filePath)
         {
             TeamViewer tv = new TeamViewer();
@@ -201,7 +226,7 @@ namespace Twoxzi.TeamViewerManager.Entity
             PropertyInfo[] pis = this.GetType().GetProperties();
             foreach(PropertyInfo property in pis)
             {
-                String key = (Attribute.GetCustomAttribute(property, typeof(DescriptionAttribute)) as DescriptionAttribute)?.Description;
+                String key = (Attribute.GetCustomAttribute(property, typeof(TeamviewerKeyAttribute)) as TeamviewerKeyAttribute)?.KeyName;
                 if(key != null && key.Length > 0)
                 {
                     String value = OperateIniFile.ReadIniData("TeamViewer Configuration", key, "", filePath);
@@ -251,7 +276,7 @@ namespace Twoxzi.TeamViewerManager.Entity
             PropertyInfo[] pis = this.GetType().GetProperties();
             foreach(PropertyInfo item in pis)
             {
-                String key = (Attribute.GetCustomAttribute(item, typeof(DescriptionAttribute)) as DescriptionAttribute)?.Description;
+                String key = (Attribute.GetCustomAttribute(item, typeof(TeamviewerKeyAttribute)) as TeamviewerKeyAttribute)?.KeyName;
                 if(key != null && key.Length > 0)
                 {
                     String value = item.GetValue(this, null)?.ToString();

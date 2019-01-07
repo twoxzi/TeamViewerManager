@@ -13,6 +13,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Windows.Data;
+using System.Reflection;
 
 namespace TeamViewerManager
 {
@@ -21,41 +22,91 @@ namespace TeamViewerManager
     /// </summary>
     public partial class MainWindow : Window
     {
-        /// <summary>
-        /// 激活外部窗口
-        /// </summary>
-        /// <param name="hWnd"></param>
-        /// <param name="fAltTab"></param>
-        [DllImport("user32.dll")]
-        public static extern void SwitchToThisWindow(IntPtr hWnd, bool fAltTab);
+        ///// <summary>
+        ///// 激活外部窗口
+        ///// </summary>
+        ///// <param name="hWnd"></param>
+        ///// <param name="fAltTab"></param>
+        //[DllImport("user32.dll")]
+        //public static extern void SwitchToThisWindow(IntPtr hWnd, bool fAltTab);
 
         ObservableCollection<TeamViewer> Collection = new ObservableCollection<TeamViewer>();
         Dictionary<GridViewColumn, Boolean> ListViewOrderAsc = new Dictionary<GridViewColumn, Boolean>();
+
+        CollectionView collectionView;
+
+        private Boolean isGroup;
+        public Boolean IsGroup
+        {
+            get { return isGroup; }
+            set
+            {
+                isGroup = value;
+                Configuration con = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+                if(con.AppSettings.Settings["isGroup"] == null)
+                {
+                    con.AppSettings.Settings.Add("isGroup", isGroup ? "1" : "0");
+                }
+                else
+                {
+                    con.AppSettings.Settings["isGroup"].Value = isGroup ? "1" : "0";
+                }
+                con.Save();
+                
+                //ConfigurationManager.AppSettings.Set("isGroup", isGroup ? "1" : "0");
+                
+            }
+        }
+
         public MainWindow()
         {
             InitializeComponent();
-           var v= this.Dispatcher.BeginInvoke(new Action(loadFiles));
+            this.DataContext = this;
+            var v = this.Dispatcher.BeginInvoke(new Action(loadFiles));
             v.Completed += LoadFiles_Completed;
-            
             listView.ItemsSource = Collection;
-            // Console.WriteLine("分组");
-            // 分组显示
-            CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(listView.ItemsSource);
-            PropertyGroupDescription groupDescription = new PropertyGroupDescription("GroupName");
-            view.GroupDescriptions.Add(groupDescription);
-
-
+            isGroup = ConfigurationManager.AppSettings["isGroup"] == "1";
             
-
-
 
             loadListViewColumns();
+            collectionView = (CollectionView)CollectionViewSource.GetDefaultView(listView.ItemsSource);
+            collectionView.Filter = x =>
+            {
+                TeamViewer tv = x as TeamViewer;
+                if(tv == null)
+                {
+                    return true;
+                }
+                String str = txtSearch.Text.Trim();
+                if(String.IsNullOrEmpty(str))
+                {
+                    return true;
+                }
+                String[] array = str.Split(' ');
+                
+                //var ps = TeamViewer.PropertyDescriptionDic.Values.ToList();
+                foreach(var item in array)
+                {
+                    if(String.IsNullOrEmpty(item))
+                    {
+                        continue;
+                    }
+                    if((tv.Id?.Contains(item) == true) || (tv.Name?.Contains(item) == true) || (tv.Memo?.Contains(item) == true) || (tv.GroupName?.Contains(item) == true))
+                    {
+
+                    }else
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            };
         }
 
         private void LoadFiles_Completed(Object sender, EventArgs e)
         {
             // 加载完成后排序
-            RefreshOrder(null, true);
+            RefreshOrder("访问时间", false);
         }
 
         private void loadListViewColumns()
@@ -77,7 +128,6 @@ namespace TeamViewerManager
             {
                 Collection.Add(item);
             }
-
         }
 
         private void listView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -106,7 +156,6 @@ namespace TeamViewerManager
         {
             TeamViewer tv = listView.SelectedItem as TeamViewer;
             tv?.Save();
-
         }
 
 
@@ -145,15 +194,16 @@ namespace TeamViewerManager
                 }
 
                 tv.Save();
-                
+
                 if(tv.Password != null && tv.Password.Length > 0)
                 {
                     Clipboard.SetText(tv.Password);
                 }
                 Process.Start(tv.FilePath);
                 this.WindowState = WindowState.Minimized;
-                RefreshOrder(null, true);
-                ActiveProcess(ConfigurationManager.AppSettings["tvProcessName"]);
+                RefreshOrder("访问时间", false);
+                listView.SelectedItem = tv;
+                //ActiveProcess(ConfigurationManager.AppSettings["tvProcessName"]);
             }
             catch(Exception ex)
             {
@@ -161,48 +211,44 @@ namespace TeamViewerManager
             }
         }
 
-        private void ActiveProcess(String pName)
-        {
-            if(pName != null && pName.Length > 0)
-            {
-                Process[] temp = Process.GetProcessesByName(pName);
-                if(temp.Length > 0)//如果查找到
-                {
-                    IntPtr handle = temp[0].MainWindowHandle;
-                    if(handle != IntPtr.Zero)
-                    {
-                        // 激活，显示在最前
-                        SwitchToThisWindow(handle, true);
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("没有找到" + pName);
-                }
-            }
-        }
-
-        //private Func<TeamViewer, String> OrderFunc;
-
+        //private void ActiveProcess(String pName)
+        //{
+        //    if(pName != null && pName.Length > 0)
+        //    {
+        //        Process[] temp = Process.GetProcessesByName(pName);
+        //        if(temp.Length > 0)//如果查找到
+        //        {
+        //            IntPtr handle = temp[0].MainWindowHandle;
+        //            if(handle != IntPtr.Zero)
+        //            {
+        //                // 激活，显示在最前
+        //                SwitchToThisWindow(handle, true);
+        //            }
+        //        }
+        //        else
+        //        {
+        //            MessageBox.Show("没有找到" + pName);
+        //        }
+        //    }
+        //}
         /// <summary>
-        /// 刷新排序
+        /// 排序
         /// </summary>
-        /// <param name="func"></param>
+        /// <param name="header"></param>
         /// <param name="isAsc"></param>
-        private void RefreshOrder(Func<TeamViewer, String> func, Boolean isAsc)
+        private void RefreshOrder(String header, Boolean isAsc)
         {
-            IOrderedEnumerable<TeamViewer> order = Collection.OrderByDescending(x => x.LastTime);
-            if(func != null)
-            {
-                order = isAsc ? order.ThenBy(func) : order.ThenByDescending(func);
-            }
-            List<TeamViewer> list = new List<TeamViewer>(order);
-            Collection.Clear();
-            foreach(var item in list)
-            {
-                Collection.Add(item);
-            }
+            PropertyInfo pi;
 
+            if(TeamViewer.PropertyDescriptionDic.TryGetValue(header, out pi))
+            {
+                CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(listView.ItemsSource);
+                while(view.SortDescriptions.Count > 0)
+                {
+                    view.SortDescriptions.RemoveAt(0);
+                }
+                view.SortDescriptions.Add(new System.ComponentModel.SortDescription(pi.Name, isAsc ? System.ComponentModel.ListSortDirection.Ascending : System.ComponentModel.ListSortDirection.Descending));
+            }
         }
 
         //单击表头排序  
@@ -212,26 +258,68 @@ namespace TeamViewerManager
             {
                 //获得点击的列  
                 GridViewColumn clickedColumn = (e.OriginalSource as GridViewColumnHeader).Column;
-
                 if(clickedColumn != null)
                 {
                     Boolean isAsc = ListViewOrderAsc[clickedColumn];
                     ListViewOrderAsc[clickedColumn] = !isAsc;
-
-
-                    Func<TeamViewer, String> OrderFunc = null;
-                    switch(clickedColumn.Header.ToString())
-                    {
-                        case "ID": OrderFunc = (x) => x.Id; break;
-                        case "名称": OrderFunc = x => x.Name; break;
-                        case "密码": OrderFunc = x => x.Password; break;
-                        case "备注": OrderFunc = x => x.Memo; break;
-                    }
-
-
-                    RefreshOrder(OrderFunc, isAsc);
+                    RefreshOrder(clickedColumn.Header.ToString(), isAsc);
                 }
             }
+        }
+
+        private void cbxIsGroup_Checked(Object sender, RoutedEventArgs e)
+        {
+            CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(listView.ItemsSource);
+            PropertyGroupDescription groupDescription = new PropertyGroupDescription("GroupName");
+            view.GroupDescriptions.Add(groupDescription);
+        }
+
+        private void cbxIsGroup_Unchecked(Object sender, RoutedEventArgs e)
+        {
+            CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(listView.ItemsSource);
+            while(view.GroupDescriptions.Count > 0)
+            {
+                view.GroupDescriptions.RemoveAt(0);
+            }
+        }
+
+        private void btnSearch_Click(Object sender, RoutedEventArgs e)
+        {
+            collectionView.Refresh();
+        }
+
+        private void txtSearch_TextChanged(Object sender, TextChangedEventArgs e)
+        {
+            this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(() => { collectionView.Refresh(); }));
+        }
+
+        private void btnOutput_Click(Object sender, RoutedEventArgs e)
+        {
+            String subDirName = "output";
+            DirectoryInfo di = new DirectoryInfo(Path.Combine( TeamViewer.Folder,subDirName));
+            if(di.Exists)
+            {
+                di.Delete(true);
+            }
+            di.Create();
+            if(listView.SelectedItems.Count == 0)
+            {
+
+                return;
+            }
+            var list = listView.SelectedItems.OfType<TeamViewer>();
+            foreach(var item in list)
+            {
+                FileInfo fi = new FileInfo(item.FilePath);
+                fi.CopyTo(Path.Combine(di.FullName, fi.Name),true);
+            }
+            try
+            {
+                Clipboard.SetText(di.FullName);
+            }
+            catch { }
+            MessageBox.Show($"已导出到目录{di.FullName}");
+
         }
     }
 }
