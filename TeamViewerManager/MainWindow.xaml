@@ -152,7 +152,7 @@
                                     <Button  Content="▲"  Margin="0,0,0,1" Command="{Binding DataContext.DescColumnCommand,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=GridViewColumnHeader}}" >
                                         <Button.Template>
                                             <ControlTemplate>
-                                                <Border BorderBrush="Gray" BorderThickness="0.8">
+                                                <Border BorderBrush="Gray" BorderThickness="0.8" Background="Wheat">
                                                     <Path Fill="Black" Data="M 4,0 L 8,8 L 0,8 Z"></Path>
                                                 </Border>
                                             </ControlTemplate>
@@ -161,7 +161,7 @@
                                     <Button Content="▼" Command="{Binding DataContext.AscColumnCommand,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=GridViewColumnHeader}}" >
                                         <Button.Template>
                                             <ControlTemplate>
-                                                <Border BorderBrush="Gray" BorderThickness="0.8">
+                                                <Border BorderBrush="Gray" BorderThickness="0.8" Background="Wheat">
                                                     <Path Fill="Black" Data="M 0,0  L 4,8 L 8,0 Z"></Path>
                                                 </Border>
                                             </ControlTemplate>
