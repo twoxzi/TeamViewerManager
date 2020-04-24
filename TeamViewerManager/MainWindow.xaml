@@ -1,45 +1,115 @@
-﻿<Window x:Class="TeamViewerManager.MainWindow"
+﻿<Window x:Class="Twoxzi.TeamViewerManager.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:TeamViewerManager"
+        xmlns:local="clr-namespace:Twoxzi.TeamViewerManager"
         mc:Ignorable="d"
         Title="TeamViewer账户管理工具" Height="400" Width="634" Icon="CN4.ico"
-        
         >
+    <Window.DataContext>
+        <local:MainWindowViewModel></local:MainWindowViewModel>
+    </Window.DataContext>
+    <Window.Resources>
+        <!--获得焦点后边框颜色-->
+        <SolidColorBrush x:Key="FocusedBorderBrush" Color="Black"/>
+        <!--鼠标移上时背景色-->
+        <SolidColorBrush x:Key="MouseOverBackground" Color="LightGray"/>
+
+        <!--清空按钮模板样式-->
+        <ControlTemplate x:Key="ClearButtonTemplate" TargetType="Button">
+            <Grid>
+                <Rectangle x:Name="rctButton" Fill="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Rectangle>
+                <ContentPresenter Content="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" 
+                                  HorizontalAlignment="Center" 
+                                  VerticalAlignment="Center">
+                </ContentPresenter>
+            </Grid>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="rctButton" Property="Fill" Value="{DynamicResource MouseOverBackground}"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True"/>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <!--带有清空按钮的TextBox风格-->
+        <Style x:Key="ClearButtonTextBoxStyle" TargetType="{x:Type TextBox}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TextBox}">
+                        <Border x:Name="bdRoot" 
+                            BorderBrush="{TemplateBinding BorderBrush}" 
+                            BorderThickness="{TemplateBinding BorderThickness}" 
+                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" 
+                            Background="{TemplateBinding Background}">
+                            <DockPanel LastChildFill="True">
+                                <Button x:Name="Part_ClearButton" 
+                                    Content="X" 
+                                    DockPanel.Dock="Right" 
+                                    Focusable="False"
+                                    Width="{Binding ActualHeight, RelativeSource={RelativeSource Self}}" 
+                                    Template="{DynamicResource ClearButtonTemplate}"
+                                    FontSize="{TemplateBinding FontSize}">
+                                </Button>
+                                
+                                <ScrollViewer x:Name="PART_ContentHost" DockPanel.Dock="Left" Background="{TemplateBinding Background}"/>
+                            </DockPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <DataTrigger Binding="{Binding ElementName=Part_ClearButton,Path=IsPressed}" Value="True">
+                                <Setter Property="Text" Value="{x:Null}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Text}" Value="">
+                                <Setter TargetName="Part_ClearButton" Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="bdRoot" Property="BorderBrush" Value="{DynamicResource FocusedBorderBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bdRoot" Property="BorderBrush" Value="{DynamicResource FocusedBorderBrush}"/>
+                            </Trigger>
+
+                            
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!--————————————————
+版权声明：本文为CSDN博主「颜家大饼」的原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接及本声明。
+原文链接：https://blog.csdn.net/u012559285/java/article/details/50921460-->
+    </Window.Resources>
     <DockPanel>
         <GroupBox Header="详细信息" DockPanel.Dock="Right">
             <DockPanel>
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
-                    <Button Content="新增" Margin="10,0,5,0" Click="Button_Click"/>
-                    <Button Content="保存" Margin="10,0,5,0" Click="Button_Click_1"/>
-                    <Button Content="删除" Margin="10,0,5,0" Click="Button_Click_2"/>
-                    <Button Content="远程" Margin="10,0,5,0" Click="Button_Click_3" />
-                    <Button Content="文件" Margin="10,0,5,0" Click="Button_Click_3" />
+                    <Button Content="保存" Margin="10,0,5,0" Command="{Binding SaveCommand}" CommandParameter="{Binding ElementName=listView}" />
+                    <Button Content="删除" Margin="10,0,5,0"  Command="{Binding DeleteCommand}" CommandParameter="{Binding ElementName=listView}" />
+                    <Button Content="远程" Margin="10,0,5,0"  Command="{Binding SaveCommand}" CommandParameter="{Binding ElementName=listView}" />
+                    <Button Content="文件" Margin="10,0,5,0"  Command="{Binding SaveCommand}" CommandParameter="{Binding ElementName=listView}" />
                 </StackPanel>
                 <TextBlock Text="ID：" DockPanel.Dock="Top"/>
-                <TextBox Text="{Binding ElementName=listView,Path=SelectedItem.Id,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"  DockPanel.Dock="Top"/>
+                <TextBox Text="{Binding ElementName=listView,Path=SelectedItem.Id ,UpdateSourceTrigger=PropertyChanged}"  DockPanel.Dock="Top"/>
                 <TextBlock Text="密码：" DockPanel.Dock="Top"/>
-                <TextBox Text="{Binding ElementName=listView,Path=SelectedItem.Password,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Top"/>
+                <TextBox Text="{Binding ElementName=listView,Path=SelectedItem.Password ,UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Top"/>
                 <TextBlock Text="用户名称：" DockPanel.Dock="Top"/>
-                <TextBox Text="{Binding ElementName=listView,Path=SelectedItem.Name,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Top"/>
+                <TextBox Text="{Binding ElementName=listView,Path=SelectedItem.Name ,UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Top"/>
                 <TextBlock Text="分组名称：" DockPanel.Dock="Top"/>
-                <TextBox Text="{Binding ElementName=listView,Path=SelectedItem.GroupName,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Top"/>
+                <TextBox Text="{Binding ElementName=listView,Path=SelectedItem.GroupName ,UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Top"/>
                 <TextBlock Text="备注：" DockPanel.Dock="Top"/>
-                <TextBox Text="{Binding ElementName=listView,Path=SelectedItem.Memo,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" TextWrapping="WrapWithOverflow" AcceptsReturn="True" VerticalScrollBarVisibility="Visible"/>
+                <TextBox Text="{Binding ElementName=listView,Path=SelectedItem.Memo ,UpdateSourceTrigger=PropertyChanged}" TextWrapping="WrapWithOverflow" AcceptsReturn="True" VerticalScrollBarVisibility="Visible"/>
             </DockPanel>
         </GroupBox>
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
-            
-            <TextBox Name="txtSearch" TextChanged="txtSearch_TextChanged" Margin="5" Width="200px" />
-            <Button Name="btnSearch" Content="搜索" Margin="5" Click="btnSearch_Click" />
-            <CheckBox Content="分组" Margin="5" Name="cbxIsGroup" IsChecked="{Binding Path=IsGroup ,Mode=TwoWay}" Unchecked="cbxIsGroup_Unchecked" Checked="cbxIsGroup_Checked" />
+            <TextBox Name="txtSearch"   Margin="5" Width="200px" Text="{Binding SearchText,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" Style="{DynamicResource ClearButtonTextBoxStyle}" />
+            <Button Content="新增" Margin="5" Command="{Binding AddCommand}" CommandParameter="{Binding ElementName=listView}" />
+            <CheckBox Content="分组" Margin="5" Name="cbxIsGroup" IsChecked="{Binding Path=IsGroup ,Mode=TwoWay}" ></CheckBox>
         </StackPanel>
-        <ListView x:Name="listView" HorizontalAlignment="Left"  VerticalAlignment="Top"  DockPanel.Dock="Left" MouseDoubleClick="listView_MouseDoubleClick"  GridViewColumnHeader.Click="ButtonSort_Click" >
+        <ListView x:Name="listView" HorizontalAlignment="Left"  VerticalAlignment="Top"  DockPanel.Dock="Left" ItemsSource="{Binding Path= Collection}" >
             <ListView.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="导出" Name="btnOutput1" Click="btnOutput_Click"></MenuItem>
+                    <MenuItem Header="导出"  Command="{Binding OutputCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=ContextMenu},Path=PlacementTarget}" ></MenuItem>
                 </ContextMenu>
             </ListView.ContextMenu>
             <!--分组合并style-->
@@ -72,9 +142,21 @@
                     </GroupStyle.ContainerStyle>
                 </GroupStyle>
             </ListView.GroupStyle>
+
             <ListView.View>
                 <GridView>
+                    <GridView.ColumnHeaderTemplate>
+                        <DataTemplate>
+                            <DockPanel>
+                                <StackPanel DockPanel.Dock="Right">
+                                    <Button  Content="↑" Command="{Binding DataContext.DescColumnCommand,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=GridViewColumnHeader}}" />
+                                    <Button Content="↓" Command="{Binding DataContext.AscColumnCommand,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=GridViewColumnHeader}}" />
+                                </StackPanel>
+                                <TextBlock Text="{Binding}" MinWidth="{Binding Path=Header}" />
+                            </DockPanel>
 
+                        </DataTemplate>
+                    </GridView.ColumnHeaderTemplate>
                     <GridViewColumn Header="ID" Width="90">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
@@ -106,6 +188,5 @@
                 </GridView>
             </ListView.View>
         </ListView>
-
     </DockPanel>
 </Window>

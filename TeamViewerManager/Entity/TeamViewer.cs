@@ -9,7 +9,13 @@ namespace Twoxzi.TeamViewerManager.Entity
 {
     public enum TeamViewerAction
     {
+        /// <summary>
+        /// 远程文件
+        /// </summary>
         Filetransfer = 1,
+        /// <summary>
+        /// 远程桌面
+        /// </summary>
         RemoteSupport = 0
     }
 
@@ -171,7 +177,11 @@ namespace Twoxzi.TeamViewerManager.Entity
                     folder = ConfigurationManager.AppSettings["folder"];
                     if(folder == null)
                     {
+#if DEBUG
+                        folder = "D:\\temp\\tvcFiles";
+#else
                         folder = "tvcFiles";
+#endif
                     }
                 }
                 return folder;
@@ -180,7 +190,7 @@ namespace Twoxzi.TeamViewerManager.Entity
 
 
 
-        #endregion Properties
+#endregion Properties
 
         public static Dictionary<String,PropertyInfo> PropertyDescriptionDic { get; set; }
 

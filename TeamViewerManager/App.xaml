@@ -1,7 +1,7 @@
-﻿<Application x:Class="TeamViewerManager.App"
+﻿<Application x:Class="Twoxzi.TeamViewerManager.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:TeamViewerManager"
+             xmlns:local="clr-namespace:Twoxzi.TeamViewerManager"
              >
     <Application.Resources>
          

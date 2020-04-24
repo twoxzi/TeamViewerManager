@@ -3,7 +3,7 @@ using System;
 using System.Windows;
 using Microsoft.VisualBasic.ApplicationServices;
 
-namespace TeamViewerManager
+namespace Twoxzi.TeamViewerManager
 {
     /// <summary>
     /// App.xaml 的交互逻辑
