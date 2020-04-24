@@ -52,7 +52,7 @@
                                     Template="{DynamicResource ClearButtonTemplate}"
                                     FontSize="{TemplateBinding FontSize}">
                                 </Button>
-                                
+
                                 <ScrollViewer x:Name="PART_ContentHost" DockPanel.Dock="Left" Background="{TemplateBinding Background}"/>
                             </DockPanel>
                         </Border>
@@ -70,7 +70,7 @@
                                 <Setter TargetName="bdRoot" Property="BorderBrush" Value="{DynamicResource FocusedBorderBrush}"/>
                             </Trigger>
 
-                            
+
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
@@ -86,8 +86,8 @@
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
                     <Button Content="保存" Margin="10,0,5,0" Command="{Binding SaveCommand}" CommandParameter="{Binding ElementName=listView}" />
                     <Button Content="删除" Margin="10,0,5,0"  Command="{Binding DeleteCommand}" CommandParameter="{Binding ElementName=listView}" />
-                    <Button Content="远程" Margin="10,0,5,0"  Command="{Binding SaveCommand}" CommandParameter="{Binding ElementName=listView}" />
-                    <Button Content="文件" Margin="10,0,5,0"  Command="{Binding SaveCommand}" CommandParameter="{Binding ElementName=listView}" />
+                    <Button Content="远程" Margin="10,0,5,0"  Command="{Binding DesktopLinkCommand}" CommandParameter="{Binding ElementName=listView}" />
+                    <Button Content="文件" Margin="10,0,5,0"  Command="{Binding FiletransferCommand}" CommandParameter="{Binding ElementName=listView}" />
                 </StackPanel>
                 <TextBlock Text="ID：" DockPanel.Dock="Top"/>
                 <TextBox Text="{Binding ElementName=listView,Path=SelectedItem.Id ,UpdateSourceTrigger=PropertyChanged}"  DockPanel.Dock="Top"/>
@@ -147,10 +147,26 @@
                 <GridView>
                     <GridView.ColumnHeaderTemplate>
                         <DataTemplate>
-                            <DockPanel>
-                                <StackPanel DockPanel.Dock="Right">
-                                    <Button  Content="↑" Command="{Binding DataContext.DescColumnCommand,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=GridViewColumnHeader}}" />
-                                    <Button Content="↓" Command="{Binding DataContext.AscColumnCommand,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=GridViewColumnHeader}}" />
+                            <DockPanel Width="{Binding RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=GridViewColumnHeader},Path=Width}">
+                                <StackPanel DockPanel.Dock="Right" Margin="5,0,0,0">
+                                    <Button  Content="▲"  Margin="0,0,0,1" Command="{Binding DataContext.DescColumnCommand,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=GridViewColumnHeader}}" >
+                                        <Button.Template>
+                                            <ControlTemplate>
+                                                <Border BorderBrush="Gray" BorderThickness="0.8">
+                                                    <Path Fill="Black" Data="M 4,0 L 8,8 L 0,8 Z"></Path>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                    <Button Content="▼" Command="{Binding DataContext.AscColumnCommand,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=GridViewColumnHeader}}" >
+                                        <Button.Template>
+                                            <ControlTemplate>
+                                                <Border BorderBrush="Gray" BorderThickness="0.8">
+                                                    <Path Fill="Black" Data="M 0,0  L 4,8 L 8,0 Z"></Path>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
                                 </StackPanel>
                                 <TextBlock Text="{Binding}" MinWidth="{Binding Path=Header}" />
                             </DockPanel>

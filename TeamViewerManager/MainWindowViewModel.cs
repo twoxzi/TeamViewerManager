@@ -30,11 +30,12 @@ namespace Twoxzi.TeamViewerManager
 
         private ICommand deleteCommand;
         private ICommand saveCommand;
-        private ICommand linkCommand;
+        private ICommand desktopLinkCommand;
         private ICommand ascColumnCommand;
         private ICommand addCommand;
         private ICommand outputCommand;
         private ICommand descColumnCommand;
+        private ICommand filetransferCommand;
 
         public Boolean? IsGroup
         {
@@ -182,6 +183,16 @@ namespace Twoxzi.TeamViewerManager
         }
 
         /// <summary>
+        /// 选中的项不为空
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        private Boolean SelectedItemIsNotNull(ListView obj)
+        {
+            return obj?.SelectedItem != null;
+        }
+
+        /// <summary>
         /// 保存
         /// </summary>
         public ICommand SaveCommand
@@ -234,56 +245,71 @@ namespace Twoxzi.TeamViewerManager
         }
 
         /// <summary>
-        /// 连接
+        /// 桌面连接
         /// </summary>
-        public ICommand LinkCommand
+        public ICommand DesktopLinkCommand
         {
             get
             {
-                if(linkCommand == null)
+                if(desktopLinkCommand == null)
                 {
-                    linkCommand = new RelayCommand(obj =>
+                    desktopLinkCommand = new RelayCommand<ListView>(listView =>
                     {
-                        try
-                        {
-                            var listView = obj as ListView;
-                            if(listView == null)
-                            {
-                                return;
-                            }
-                            TeamViewer tv = listView.SelectedItem as TeamViewer;
-                            if(tv == null)
-                            {
-                                //MessageBox.Show("未选中连接对象，请先在列表中选择目标。");
-                                return;
-                            }
-
-                            Button btn = obj as Button;
-                            if(btn != null)
-                            {
-                                tv.Action = btn.Content?.ToString() == "文件" ? TeamViewerAction.Filetransfer : TeamViewerAction.RemoteSupport;
-                            }
-
-                            tv.Save();
-
-                            if(tv.Password != null && tv.Password.Length > 0)
-                            {
-                                Clipboard.SetText(tv.Password);
-                            }
-                            Process.Start(tv.FilePath);
-
-                            //  this.WindowState = WindowState.Minimized;
-                            RefreshOrder("访问时间", false);
-                            listView.SelectedItem = tv;
-                            //ActiveProcess(ConfigurationManager.AppSettings["tvProcessName"]);
-                        }
-                        catch(Exception ex)
-                        {
-                            MessageBox.Show(ex.Message + ex.StackTrace, "错误");
-                        }
+                        LinkExecuteBase(listView, TeamViewerAction.RemoteSupport);
                     }, SelectedItemIsNotNull);
                 }
-                return linkCommand;
+                return desktopLinkCommand;
+            }
+        }
+        public ICommand FiletransferCommand
+        {
+            get
+            {
+                if(filetransferCommand == null)
+                {
+                    filetransferCommand = new RelayCommand<ListView>(listView =>
+                     {
+                         LinkExecuteBase(listView, TeamViewerAction.Filetransfer);
+                     }, SelectedItemIsNotNull);
+                }
+                return filetransferCommand;
+            }
+        }
+
+
+        private void LinkExecuteBase(ListView listView, TeamViewerAction teamViewerAction)
+        {
+            try
+            {
+                if(listView == null)
+                {
+                    return;
+                }
+                TeamViewer tv = listView.SelectedItem as TeamViewer;
+                if(tv == null)
+                {
+                    //MessageBox.Show("未选中连接对象，请先在列表中选择目标。");
+                    return;
+                }
+                tv.Action = teamViewerAction;
+                tv.Save();
+                if(tv.Password != null && tv.Password.Length > 0)
+                {
+                    Clipboard.SetText(tv.Password);
+                }
+                Process.Start(tv.FilePath);
+                var window = Window.GetWindow(listView);
+                if(window != null)
+                {
+                    window.WindowState = WindowState.Minimized;
+                }
+                RefreshOrder("访问时间", false);
+                listView.SelectedItem = tv;
+                //ActiveProcess(ConfigurationManager.AppSettings["tvProcessName"]);
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message + ex.StackTrace, "错误");
             }
         }
 
